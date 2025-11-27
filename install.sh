@@ -160,12 +160,16 @@ config_check() {
 }
 
 set_as_entrance() {
-    if [[ -f "$0" ]]; then
-        cp "$0" ${SCRIPT_FILE_PATH}
+    if [[ ! -f "${SCRIPT_FILE_PATH}" ]]; then
+        LOGI "正在安装快捷命令..."
+        wget --no-check-certificate -O ${SCRIPT_FILE_PATH} \
+            https://raw.githubusercontent.com/Michaol/sb-ok/main/install.sh
         chmod +x ${SCRIPT_FILE_PATH}
-    else
-        LOGE "无法获取脚本路径，跳过安装快捷命令"
-        LOGE "请手动将脚本复制到 ${SCRIPT_FILE_PATH} 以启用 'sing-box' 命令"
+        if [[ $? -eq 0 ]]; then
+            LOGI "快捷命令安装成功，可以直接使用 'sing-box' 命令"
+        else
+            LOGE "快捷命令安装失败，请检查网络连接"
+        fi
     fi
 }
 
@@ -358,10 +362,18 @@ download_config() {
     else
         if [[ ! -f "${CONFIG_FILE_PATH}/config.json" ]]; then
             LOGE "未找到配置文件"
+            LOGE ""
             LOGE "请使用以下方式之一提供配置:"
-            LOGE "  1. 设置环境变量: export GITHUB_TOKEN=xxx CONFIG_GIST_ID=xxx"
-            LOGE "  2. 使用 URL 参数: ./install.sh install https://gist.githubusercontent.com/..."
-            LOGE "  3. 在脚本同级目录放置 config.json"
+            LOGE ""
+            LOGE "方式一：使用环境变量（推荐）"
+            LOGE "  export GITHUB_TOKEN='your_token'"
+            LOGE "  export CONFIG_GIST_ID='your_gist_id'"
+            LOGE ""
+            LOGE "方式二：使用 URL 参数"
+            LOGE "  bash install.sh install https://gist.githubusercontent.com/.../config.json"
+            LOGE ""
+            LOGE "方式三：放置本地文件"
+            LOGE "  将 config.json 放在脚本同级目录"
             exit 1
         else
             LOGI "使用现有的配置文件"
@@ -495,6 +507,11 @@ clear_sing_box() {
 #uninstall sing-box
 uninstall_sing-box() {
     LOGD "开始卸载sing-box..."
+    status_check
+    if [[ $? == ${SING_BOX_STATUS_NOT_INSTALL} ]]; then
+        LOGE "sing-box 未安装，无需卸载"
+        return 0
+    fi
     pidOfsing_box=$(pidof sing-box)
     if [ -n ${pidOfsing_box} ]; then
         stop_sing-box
@@ -581,22 +598,6 @@ restart_sing-box() {
     fi
 }
 
-#stop sing-box
-stop_sing-box() {
-    LOGD "开始停止sing-box服务..."
-    status_check
-    if [ $? == ${SING_BOX_STATUS_NOT_INSTALL} ]; then
-        LOGE "sing-box did not install,can not stop it"
-        exit 1
-    elif [ $? == ${SING_BOX_STATUS_NOT_RUNNING} ]; then
-        LOGI "sing-box already stoped,no need to stop it again"
-        exit 1
-    elif [ $? == ${SING_BOX_STATUS_RUNNING} ]; then
-        if ! systemctl stop sing-box; then
-            LOGE "stop sing-box service failed,plz check logs"
-            exit 1
-        fi
-    fi
     LOGD "停止sing-box服务成功"
 }
 
