@@ -598,8 +598,25 @@ restart_sing-box() {
     fi
 }
 
+#stop sing-box
+stop_sing-box() {
+    LOGD "开始停止sing-box服务..."
+    status_check
+    if [ $? == ${SING_BOX_STATUS_NOT_INSTALL} ]; then
+        LOGE "sing-box 未安装"
+        return 1
+    elif [ $? == ${SING_BOX_STATUS_NOT_RUNNING} ]; then
+        LOGI "sing-box already stopped,no need to stop it again"
+        return 0
+    elif [ $? == ${SING_BOX_STATUS_RUNNING} ]; then
+        if ! systemctl stop sing-box; then
+            LOGE "stop sing-box service failed,plz check logs"
+            exit 1
+        fi
+    fi
     LOGD "停止sing-box服务成功"
 }
+
 
 #enable sing-box will set sing-box auto start on system boot
 enable_sing-box() {
