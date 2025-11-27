@@ -160,16 +160,16 @@ config_check() {
 }
 
 set_as_entrance() {
-    if [[ ! -f "${SCRIPT_FILE_PATH}" ]]; then
-        LOGI "正在安装快捷命令..."
-        wget --no-check-certificate -O ${SCRIPT_FILE_PATH} \
-            https://raw.githubusercontent.com/Michaol/sb-ok/main/install.sh
+    LOGI "正在安装/更新快捷命令..."
+    wget --no-check-certificate -O ${SCRIPT_FILE_PATH} \
+        https://raw.githubusercontent.com/Michaol/sb-ok/main/install.sh
+    
+    if [[ $? -eq 0 ]]; then
         chmod +x ${SCRIPT_FILE_PATH}
-        if [[ $? -eq 0 ]]; then
-            LOGI "快捷命令安装成功，可以直接使用 'sing-box' 命令"
-        else
-            LOGE "快捷命令安装失败，请检查网络连接"
-        fi
+        LOGI "快捷命令安装成功，可以直接使用 'sing-box' 命令"
+    else
+        LOGE "快捷命令安装失败，请检查网络连接"
+        LOGE "您仍然可以通过完整路径使用脚本"
     fi
 }
 
